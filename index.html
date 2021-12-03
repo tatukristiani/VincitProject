@@ -15,15 +15,20 @@
   <div class="container">
     <div id="date-pick-container">
       <label for="start-date">Start Date:</label>
-      <input type="date" id="start-date" name="start-date" />
+      <input type="date" id="start-date" name="start-date" min="2013-04-28" />
 
       <label for="end-date">End Date:</label>
-      <input type="date" id="end-date" name="end-date" />
+      <input type="date" id="end-date" name="end-date" min="2013-04-29" />
+
+      <button id="searchButton">Press Me!</button>
     </div>
-    <canvas id="cryptoChart"></canvas>
+    <div class="container">
+      <canvas id="cryptoChart"></canvas>
+    </div>
+    <p id="longestBearish"></p>
   </div>
-  <button id="searchButton">Press Me!</button>
 </body>
+<script src="DateRangeBearish.js"></script>
 <script src="BitcoinData.js"></script>
 <script src="app.js"></script>
 
