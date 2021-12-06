@@ -8,26 +8,31 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.6.0/chart.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" />
   <link />
+  <link rel="stylesheet" href="style.css" />
   <title>VINCIT Crypto Application</title>
 </head>
 
 <body>
-  <div class="container">
+  <div class="my-container">
+    <h1>Bitcoin machine for Scrooge McDuck</h1>
     <div id="date-pick-container">
       <label for="start-date">Start Date:</label>
       <input type="date" id="start-date" name="start-date" min="2013-04-28" />
 
-      <label for="end-date">End Date:</label>
+      <label for="end-date" id="end-date-label">End Date:</label>
       <input type="date" id="end-date" name="end-date" min="2013-04-29" />
-
-      <button id="searchButton">Press Me!</button>
     </div>
-    <div class="container">
-      <canvas id="cryptoChart"></canvas>
+    <div id="search-button-div">
+      <button id="search-button">Start Search</button>
     </div>
-    <p id="longestBearish"></p>
-    <p id="highest-trading-volume"></p>
-    <p id="buy-sell-options"></p>
+    <div class="chart-container">
+      <canvas id="crypto-chart"></canvas>
+    </div>
+    <div class="result-container">
+      <p id="longest-bearish"></p>
+      <p id="highest-trading-volume"></p>
+      <p id="buy-sell-options"></p>
+    </div>
   </div>
 </body>
 <script src="DateRangeBearish.js"></script>

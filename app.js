@@ -20,9 +20,9 @@ var config = {
 };
 
 
-myChart = new Chart(document.getElementById("cryptoChart"), config);
-var searchButton = document.getElementById("searchButton");
-var longestBearishText = document.getElementById("longestBearish");
+myChart = new Chart(document.getElementById("crypto-chart"), config);
+var searchButton = document.getElementById("search-button");
+var longestBearishText = document.getElementById("longest-bearish");
 var startDateInput = document.getElementById("start-date");
 var endDateInput = document.getElementById("end-date");
 var highestTradingVolume = document.getElementById("highest-trading-volume");

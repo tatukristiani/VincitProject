@@ -1,0 +1,50 @@
+body {
+  background-color: beige;
+}
+
+.my-container {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 10px;
+  padding: 10px;
+}
+
+h1 {
+  width: 100%;
+  text-align: center;
+  margin: 50px;
+  margin-bottom: 100px;
+}
+
+#date-pick-container {
+  width: 100%;
+  text-align:  center;
+  margin-right: 60px;
+}
+
+.chart-container {
+  width: 85%;
+  text-align: center;
+  margin-top: 100px;
+  margin-bottom: 100px;
+  margin-left: 140px;
+}
+
+.result-container {
+  width: 100%;
+  text-align: center;
+}
+
+#search-button-div {
+  margin: 40px;
+  text-align: center;
+  width: 100%;
+}
+
+#search-button-div > button {
+  width: 500px;
+}
+
+#end-date-label {
+  margin-left: 80px;
+}
