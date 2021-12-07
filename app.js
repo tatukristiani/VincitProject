@@ -1,36 +1,44 @@
 // Premade variables for the Chart(labels,data,config).
-var myChart;
-var labels = [];
+var myChart = document.getElementById("crypto-chart");
 
-var data = {
-  labels: labels,
-  datasets: [
-    {
-      label: "Price",
-      backgroundColor: "red",
-      data: []
-    }
-  ]
-};
-
-var config = {
-  type: "line",
-  data: data,
-  options: {}
-};
-
-
-myChart = new Chart(document.getElementById("crypto-chart"), config);
 var searchButton = document.getElementById("search-button");
 var longestBearishText = document.getElementById("longest-bearish");
 var startDateInput = document.getElementById("start-date");
 var endDateInput = document.getElementById("end-date");
 var highestTradingVolume = document.getElementById("highest-trading-volume");
 var buySellOptions = document.getElementById("buy-sell-options");
-createStringOfTodaysDate(startDateInput);
-createStringOfTodaysDate(endDateInput);
 
-searchButton.onclick = function () {
+// Initializes the chart data with line chart, adds max values to the date inputs and adds an event listener for search button.
+function init() {
+  var labels = [];
+
+  var data = {
+    labels: labels,
+    datasets: [
+      {
+        label: "Price(euros)",
+        backgroundColor: "red",
+        data: []
+      }
+    ]
+  };
+
+  var config = {
+    type: "line",
+    data: data,
+    options: {}
+  };
+
+
+  myChart = new Chart(myChart, config);
+  createStringOfTodaysDate(startDateInput);
+  createStringOfTodaysDate(endDateInput);
+  searchButton.addEventListener("click", startSearch);
+};
+
+// Starts the search with the given dates from the date inputs. 
+// Validates the dates and proceeds fetch API data or give an alert if there is a problem with the dates.
+function startSearch() {
   var startDate = new Date(document.getElementById("start-date").value);
   var endDate = new Date(document.getElementById("end-date").value);
 
@@ -52,8 +60,8 @@ searchButton.onclick = function () {
 
 };
 
-// Fetch's bitcoin data from coingecko API with the dates from the html date inputs. 
-// Allways gets 101 results since it gives us everytime the 00:00 UTC time of the price & it isn't time costly.
+// Fetch's bitcoin data from coingecko API with the validated dates from the html date inputs. 
+// Allways gets 101 results since it gives us everytime the 00:00 UTC time of the price & it isn't time costly. (Not 90 results for safety reasons)
 async function fetchData(startDate, endDate) {
   var isInNeedOfSort = false;
   var startDateSeconds = convertDateToTimestamp(startDate);
@@ -124,8 +132,8 @@ function updateChart(data) {
     };
     changeChartData(newData);
     longestBearishText.innerHTML = setBearishInfo(longestBearishTrend(data));
-    highestTradingVolume.innerHTML = findMaxTradingVolume(data);
-    buySellOptions.innerHTML = whenToBuyAndSell(data);
+    highestTradingVolume.innerHTML = tradingVolumeToText(findMaxTradingVolume(data));
+    buySellOptions.innerHTML = bitcoinDataRangeToText(whenToBuyAndSell(data));
   } else {
     alert("The data of the given dates doesn't exist.");
   };
@@ -159,12 +167,12 @@ function convertDateToTimestamp(date) {
   return newDate.getTime() / 1000;
 };
 
-// If date is a Date object & not NaN -> return true, else false.
+// If date is a Date object & isn't NaN -> return true, else false.
 function isValidDate(date) {
   return date instanceof Date && !isNaN(date);
 };
 
-// Sorts the given data array by using the original start date to remove the dates before it.
+// Sorts the given data array by using the original start date(wanted start date) to remove the dates before it.
 function getWantedDates(data, startDate) {
   var dateInMilliseconds = startDate.getTime();
   for (var i = 0; i < data.prices.length; i++) {
@@ -192,7 +200,7 @@ function getDaysBetween(startDate, endDate) {
   return days;
 };
 
-// Creates max attribute for given inpu of todays date.
+// Creates max attribute for given input of todays date.
 function createStringOfTodaysDate(input) {
   var today = new Date();
   var month = today.getMonth() + 1;
@@ -208,6 +216,7 @@ function createStringOfTodaysDate(input) {
   input.setAttribute('max', maxDate);
 }
 
+// Converts Date object to text of format -> MM/DD/YYYY
 function dateToString(date) {
   var month = date.getMonth() + 1;
   var day = date.getDate();
@@ -218,9 +227,12 @@ function dateToString(date) {
 
 /* PRE-ASSIGNMENT TASK ALGORITHMS */
 
+// Finds all the bearish trends starting & end points from given data(API data) and adds them to an array.
+// The array is used to sort the data by comparing their dates and getting the one with highest bearish trend.
+// Finally returns a BitcoinDataRange object(holds BitcoinData objects) that has the longest bearish trends starting data and ending datas.
 function longestBearishTrend(data) {
   var bitcoinPrices = data.prices;
-  var array = new Array(); // Array for DateRangeBearish objects(these have bearish trends atleast for one day)
+  var array = new Array(); // Array for BitcoinDataRange objects(these have bearish trends atleast of one day)
   var startDate = null; // Holds the current start date.
   var startPrice;
   var endDate = null; // Holds the current endate, gets a value when counting resets.
@@ -244,12 +256,12 @@ function longestBearishTrend(data) {
         endDate = nextBitcoinDate;
         endPrice = nextBitcoinPrice;
         if ((bitcoinPrices.length - (i + 1)) == 1) {
-          array.push(new DateRangeBearish(new BitcoinData(new Date(startDate), startPrice), new BitcoinData(new Date(endDate), endPrice)));
+          array.push(new BitcoinDataRange(new BitcoinData(new Date(startDate), startPrice), new BitcoinData(new Date(endDate), endPrice)));
         }
       }
       else {
         if (startDate != null) {
-          array.push(new DateRangeBearish(new BitcoinData(new Date(startDate), startPrice), new BitcoinData(new Date(endDate), endPrice)));
+          array.push(new BitcoinDataRange(new BitcoinData(new Date(startDate), startPrice), new BitcoinData(new Date(endDate), endPrice)));
         }
         startDate = null;
         endDate = null;
@@ -269,23 +281,24 @@ function longestBearishTrend(data) {
   }
   else if (bitcoinPrices.length == 2) {
     if (bitcoinPrices[0][1] >= bitcoinPrices[1][1]) {
-      return new DateRangeBearish(new BitcoinData(new Date(bitcoinPrices[0][0]), bitcoinPrices[0][1]), new BitcoinData(new Date(bitcoinPrices[1][0]), bitcoinPrices[1][1]));
+      return new BitcoinDataRange(new BitcoinData(new Date(bitcoinPrices[0][0]), bitcoinPrices[0][1]), new BitcoinData(new Date(bitcoinPrices[1][0]), bitcoinPrices[1][1]));
     }
   }
-  else { // Not possible to reach here. Unless code is altered.
+  else { // Not possible to reach here. Unless code is altered. (In the start we set it so that user can't select same dates or ending date less than start date)
     alert("You can't watch only one days data!!!")
     return null;
   }
 }
 
-function setBearishInfo(dateRangeBearish) {
+// Creates a text of the given BitcoinDataRange object.
+function setBearishInfo(bitcoinDataRange) {
   var text = "Longest bearish downward trend: ";
-  if (dateRangeBearish == null) {
+  if (bitcoinDataRange == null) {
     text += " Between the given dates the price only went up."
   }
   else {
-    var startDate = dateRangeBearish.bitcoinDataStart.date;
-    var endDate = dateRangeBearish.bitcoinDataEnd.date;
+    var startDate = bitcoinDataRange.bitcoinDataStart.date;
+    var endDate = bitcoinDataRange.bitcoinDataEnd.date;
     var days = getDaysBetween(startDate, endDate);
     var formattedStartDate = (startDate.getMonth() + 1) + "/" + startDate.getDate() + "/" + startDate.getFullYear();
     var formattedEndDate = (endDate.getMonth() + 1) + "/" + endDate.getDate() + "/" + endDate.getFullYear();
@@ -296,6 +309,7 @@ function setBearishInfo(dateRangeBearish) {
 }
 
 // Finds the highest trading volume of the given API data.
+// Returns a BitcoinData object that had the highest trading volume with volume instead of price.
 function findMaxTradingVolume(data) {
   var tradingVolumes = data.total_volumes;
 
@@ -304,13 +318,23 @@ function findMaxTradingVolume(data) {
 
   tradingVolumes.sort(function (a, b) { return (b[1] - a[1]) });
   var date = new Date(tradingVolumes[0][0]);
-  var dateText = (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
-  var volumeText = numberFormatter(tradingVolumes[0][1]);
-  var text = "Highest trading volume: " + volumeText + " on Date: " + dateText;
-  return text;
+  var volume = tradingVolumes[0][1];
+  //var dateText = (date.getMonth() + 1) + "/" + date.getDate() + "/" + date.getFullYear();
+  //var volumeText = numberFormatter(tradingVolumes[0][1]);
+  //var text = "Highest trading volume: " + volumeText + " on Date: " + dateText;
+  var bitcoinData = new BitcoinData(date, volume); // Create a BitcoinData that has the date and volume(not price in this case).
+  return bitcoinData;
 }
 
-// Returns a string of number given with to decimals.
+// Converts bitcoinData object to text. (Used to create text with volume data, not for price!)
+function tradingVolumeToText(bitcoinData) {
+  var dateText = (bitcoinData.date.getMonth() + 1) + "/" + bitcoinData.date.getDate() + "/" + bitcoinData.date.getFullYear();
+  var volumeText = numberFormatter(bitcoinData.price); // NOTE! bitcoinData price returns here a volume not its price.
+  var returnText = "Highest trading volume: " + volumeText + " on Date: " + dateText;
+  return returnText;
+}
+
+// Returns a string of number given with two decimals.
 function numberFormatter(numberToFormat) {
   var formatted = "";
   if (numberToFormat < 1000000) {
@@ -328,11 +352,14 @@ function numberFormatter(numberToFormat) {
   return formatted;
 }
 
+// Finds the best day to buy and sell for maximum profits of the given API data.
+// Returns null if there is no profitable buy and sell points, otherwise returns BitcoinDataRange object that holds the buying and sell data.
 function whenToBuyAndSell(data) {
+  var buyAndSellData = null;
   var prices = data.prices;
 
   if (prices.length >= 2) {
-    var lowestDateArray = new Array();
+    var lowestDateArray = new Array(); // Array for the lowest dates(possible buys)
     var currentMaxProfits = prices[1][1] - prices[0][1];
     var currentLowestPrice = prices[0][1];
     var lowestDateIndex = 0;
@@ -350,31 +377,41 @@ function whenToBuyAndSell(data) {
         lowestDateArray.push(lowestDateIndex);
       }
     }
-    lowestDateArray.forEach(function (e) {
-      console.log(e);
-    });
+    // Make sure that the date(index of the date) of buying is before selling!
     if (lowestDateIndex > highestDateIndex) {
+      // Until we have a date(Index of the date) before the selling date, we try to find it from the lowestDateArray.
       while (lowestDateIndex > highestDateIndex) {
         lowestDateIndex = lowestDateArray.pop();
       }
     }
     var profit = currentMaxProfits;
+    // If there is no profits -> return value is null.
     if (profit > 0) {
       buyBitcoinData = new BitcoinData(new Date(prices[lowestDateIndex][0]), prices[lowestDateIndex][1]);
       sellBitcoinData = new BitcoinData(new Date(prices[highestDateIndex][0]), prices[highestDateIndex][1]);
-      var buySellText = "Best profit = " + profit.toFixed(2) + " euros, when " + createBuySellText(buyBitcoinData, sellBitcoinData);
-      return buySellText;
-    }
-    else {
-      return "Between the given dates buying or selling isn't profitable.";
+      buyAndSellData = new BitcoinDataRange(buyBitcoinData, sellBitcoinData);
     }
   }
   else {
     // Should never come to this part.
     alert("Can't buy and sell on the same day");
   }
+
+  return buyAndSellData;
 }
 
+// Converts given BitcoinDataRange to text. (In this case for output of when to buy and sell)
+function bitcoinDataRangeToText(bitcoinDataRange) {
+  if (bitcoinDataRange != null) {
+    var profit = (bitcoinDataRange.bitcoinDataEnd.price - bitcoinDataRange.bitcoinDataStart.price);
+    var buySellText = createBuySellText(bitcoinDataRange.bitcoinDataStart, bitcoinDataRange.bitcoinDataEnd);
+    var profitWithDates = "Best profit = " + profit.toFixed(2) + " euros, when " + buySellText;
+    return profitWithDates;
+  }
+  return "Buying or selling isn't profitable between the given dates!";
+}
+
+// Creates a text of BitcoinData objects that tells a buy date/price & a sell date/price.
 function createBuySellText(buyBitcoinData, sellBitcoinData) {
   var buyDate = dateToString(buyBitcoinData.date);
   var buyPrice = numberFormatter(buyBitcoinData.price);
@@ -385,4 +422,4 @@ function createBuySellText(buyBitcoinData, sellBitcoinData) {
 }
 
 
-
+init();
