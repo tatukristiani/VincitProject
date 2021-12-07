@@ -1,5 +1,5 @@
 # VincitProject
-Vincits Rising Star Pre-Assignment project.
+Vincits Rising Star Pre-Assignment project.  
 Simplest way to test the project is to download it as a .zip file -> unpack it and open index.html.
 
 Project is written mostly in JavaScript with some little HTML and CSS.
